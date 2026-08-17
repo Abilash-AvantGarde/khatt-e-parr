@@ -254,6 +254,7 @@ None. No images, icon fonts, or SVG illustrations. All imagery is generated from
 | `index.html` | Self-contained compiled build. **Open this first** — the most faithful reference for look and behavior. |
 | `Ask Her Out - Site.dc.html` | Authored source: HTML template + JS logic class. Read for logic, state, and the encode/decode, search, and duotone implementations. |
 | `Ask Her Out - Wireframes.dc.html` | Low-fi wireframes of the original flow, including an alternative desktop layout. Structure reference only — ignore the styling. |
+| `brand.js` | **App name and user-facing copy.** The one file to edit for branding or wording. Mirror changes into `index.html`'s inlined block. |
 | `support.js` | Runtime required by the `.dc.html` files. Not part of the design; do not port. |
 
 ## Fixed since the original bundle
@@ -264,26 +265,43 @@ None. No images, icon fonts, or SVG illustrations. All imagery is generated from
 5. **`prefers-reduced-motion` is honoured**, which matters here because the app is motion-heavy (sway, seal, flap, confetti, swipe).
 6. **Tab identity**: a wax-seal favicon, and the tab title now carries the app name.
 
-## Branding — one place to change it
-The app name lives in a single constant at the top of the logic script in
-`Ask Her Out - Site.dc.html` (and the same block inside the compiled `index.html`):
+## Branding & copy — `brand.js`
+**`brand.js` is the one file to edit** for the app's name and its user-facing wording.
+It is a plain `<script>` (no modules, no build step, works over `file://`) that sets
+`window.BRAND`; the app reads from it with per-key fallbacks, so a missing or partial
+`brand.js` still leaves a working app.
 
 ```js
-const APP_NAME = 'Khatt-e-Parr';
-const APP_TAB_TITLE = APP_NAME;
+var APP_NAME = 'Khatt-e-Parr';   // wordmark, browser tab, date.ics PRODID
+var APP_TAB_TITLE = APP_NAME;    // browser tab only
+var COPY = { teaseHead, teaseSub, teaseCta, sentHead, sentSub,
+             replyNudge, senderFoot, receiverFoot };
 ```
 
 `APP_NAME` drives all three places the name appears: the sender's header wordmark
-(via `appName` in `renderVals`), the browser tab (`document.title`, set on mount),
-and the `PRODID` stamped into `date.ics`. Change that one line and everything follows.
+(bound as `appName` through `renderVals`), the browser tab (`document.title`, set at
+mount), and the `PRODID` stamped into `date.ics`.
 
 Alternative dateish names are kept as comments beside the constant for easy swapping:
 `A Night Free`, `One Good Night`, `Pick a Night`, `Something Arrived`.
 
 `APP_TAB_TITLE` is split out deliberately. The tab is read by the **receiver** before
-she opens anything — in her tab bar, over her shoulder, in her history — so setting it
-to something neutral like `'An Invitation'` protects the wax-seal reveal. It currently
-mirrors `APP_NAME` for consistent branding; change just that line to decouple them.
+she opens anything — in her tab bar, over her shoulder, in her history — so a neutral
+value such as `'A khat for you'` protects the wax-seal reveal. It currently mirrors
+`APP_NAME`; change just that line to decouple them.
+
+### The "khat" wording
+The receiver's copy leans on **khat** (خط) — a letter in the old sense: written, sealed,
+carried, handed over — so the envelope, the wax seal and the words tell one story.
+Her first screen reads *"{name}, a khat came for you."* / *"N ideas sealed inside.
+he's sweating."*, and the reply nudge asks her to *send this khat back*. All of it is in
+`COPY`, so the metaphor can be dialled up or dropped without touching app logic.
+
+### ⚠️ Keep the compiled build in sync
+`index.html` is a **self-contained artifact** — it cannot load `./brand.js`, so the same
+constants are **inlined** near the top of its logic script (marked `MIRRORED FROM
+./brand.js`). Change `brand.js`, then mirror the values there. It still honours
+`window.BRAND` if a page happens to define one before the bundle runs.
 
 ## Known gaps for production
 1. **Reply loop is manual** — she copies a link back to him. A tiny key-value backend (or a signed short-link service) would let his screen update on its own; the prototype's poll-based version was removed because it only worked within one browser. Worth keeping manual: it preserves the no-server property the whole design rests on.
