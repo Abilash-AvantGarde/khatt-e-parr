@@ -248,6 +248,47 @@ Fallback lines (used when no AI is available):
 ## Assets
 None. No images, icon fonts, or SVG illustrations. All imagery is generated from OSM map tiles (see the duotone section); the wax seal and envelope are CSS. Fonts come from Google Fonts (EB Garamond, Caveat); Leaflet CSS/JS from unpkg. Self-host all four for production.
 
+## Deploying
+
+The app is a static page with **no backend** — React, Leaflet and all 18 fonts are
+bundled inside `index.html`. The only runtime network calls are OpenStreetMap tiles
+and Nominatim search. Anything that can serve two files can host it.
+
+### Docker (included)
+
+```bash
+docker compose up -d --build     # http://localhost:8080
+docker compose down
+```
+
+`Dockerfile` + `nginx.conf` + `compose.yaml` are in the repo. The image is
+nginx-alpine, ~80 MB, serving `index.html` and `brand.js`. It runs **unprivileged**
+(uid 101) on port 8080 with a read-only root filesystem, `no-new-privileges`, a
+healthcheck, and a CSP that allows exactly what the app needs — inline scripts, plus
+`tile.openstreetmap.org` for imagery and `nominatim.openstreetmap.org` for search.
+
+To put it on a public URL, run the same image on any VPS behind a TLS terminator
+(Caddy, Traefik or nginx with certbot), or push it to a container host — Fly.io,
+Google Cloud Run and Render all take this Dockerfile unchanged. Set the published
+port to 8080.
+
+Two gotchas worth knowing if you edit the config:
+- **nginx `add_header` does not merge across levels.** A `location` block with its
+  own `add_header` silently drops every header inherited from `server`, which is
+  why the security headers are repeated in each location.
+- **tmpfs mounts default to root ownership.** With `read_only: true`, nginx cannot
+  write its temp dirs unless the mounts are given `uid=101,gid=101`.
+
+### Without Docker
+
+Any static host works — GitHub Pages, Netlify, Cloudflare Pages, S3+CloudFront, or
+plain nginx. Upload `index.html` and `brand.js` and you are done; there is nothing
+to build. GitHub Pages is the shortest path if the repo is already public.
+
+**Before real traffic**, revisit the OSM dependencies in *Known gaps* below: the
+public Nominatim and tile endpoints want a descriptive `User-Agent`/`Referer` and
+rate limiting, and tiles are the first thing to break under load.
+
 ## Files
 | File | What it is |
 |---|---|
@@ -255,6 +296,7 @@ None. No images, icon fonts, or SVG illustrations. All imagery is generated from
 | `Ask Her Out - Site.dc.html` | Authored source: HTML template + JS logic class. Read for logic, state, and the encode/decode, search, and duotone implementations. |
 | `Ask Her Out - Wireframes.dc.html` | Low-fi wireframes of the original flow, including an alternative desktop layout. Structure reference only — ignore the styling. |
 | `brand.js` | **App name and user-facing copy.** The one file to edit for branding or wording. Mirror changes into `index.html`'s inlined block. |
+| `Dockerfile`, `nginx.conf`, `compose.yaml` | Deployment. `docker compose up -d --build` → http://localhost:8080. |
 | `support.js` | Runtime required by the `.dc.html` files. Not part of the design; do not port. |
 
 ## Fixed since the original bundle

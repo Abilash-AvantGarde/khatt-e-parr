@@ -1,0 +1,16 @@
+services:
+  khatt-e-parr:
+    build: .
+    image: khatt-e-parr:latest
+    container_name: khatt-e-parr
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+    read_only: true
+    # tmpfs mounts default to root ownership; nginx runs unprivileged (uid 101)
+    # and needs to write its temp dirs and pid file.
+    tmpfs:
+      - /var/cache/nginx:uid=101,gid=101
+      - /var/run:uid=101,gid=101
+    security_opt:
+      - no-new-privileges:true
