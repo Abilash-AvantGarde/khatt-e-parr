@@ -1,4 +1,4 @@
-# Handoff: Are You Free — date-invite web app
+# Handoff: Khatt-e-Parr — date-invite web app
 
 ## Overview
 A serverless, single-page web app for asking someone on a date. The **sender** builds an invite (her name → shortlist of real places from a live map → nights he's free → an opening line), seals it, and shares a URL. The **receiver** opens that URL, breaks a wax seal, swipes through his place ideas, picks a night and hour, writes a note back, and gets a **reply URL** to send him. He pastes (or opens) that reply URL and sees her answer.
@@ -262,7 +262,28 @@ None. No images, icon fonts, or SVG illustrations. All imagery is generated from
 3. **`date.ics` is a valid calendar event.** It previously had no `DTSTART` at all and no escaping. Day/hour labels now resolve to a real datetime (evening hours are PM, "coffee o'clock" is 10:30), with `DTEND`, `UID`, `DTSTAMP`, RFC 5545 escaping of `\ ; ,` and newlines, 75-octet line folding, and CRLF endings.
 4. **OSM attribution is on.** `attributionControl: false` was removed and the tile layer carries "© OpenStreetMap contributors" — a licence condition, not a style choice.
 5. **`prefers-reduced-motion` is honoured**, which matters here because the app is motion-heavy (sway, seal, flap, confetti, swipe).
-6. **Tab identity**: title is "An Invitation" with a wax-seal favicon. The old "Are You Free" title spoiled the envelope reveal for the receiver, since the tab is readable before she opens anything.
+6. **Tab identity**: a wax-seal favicon, and the tab title now carries the app name.
+
+## Branding — one place to change it
+The app name lives in a single constant at the top of the logic script in
+`Ask Her Out - Site.dc.html` (and the same block inside the compiled `index.html`):
+
+```js
+const APP_NAME = 'Khatt-e-Parr';
+const APP_TAB_TITLE = APP_NAME;
+```
+
+`APP_NAME` drives all three places the name appears: the sender's header wordmark
+(via `appName` in `renderVals`), the browser tab (`document.title`, set on mount),
+and the `PRODID` stamped into `date.ics`. Change that one line and everything follows.
+
+Alternative dateish names are kept as comments beside the constant for easy swapping:
+`A Night Free`, `One Good Night`, `Pick a Night`, `Something Arrived`.
+
+`APP_TAB_TITLE` is split out deliberately. The tab is read by the **receiver** before
+she opens anything — in her tab bar, over her shoulder, in her history — so setting it
+to something neutral like `'An Invitation'` protects the wax-seal reveal. It currently
+mirrors `APP_NAME` for consistent branding; change just that line to decouple them.
 
 ## Known gaps for production
 1. **Reply loop is manual** — she copies a link back to him. A tiny key-value backend (or a signed short-link service) would let his screen update on its own; the prototype's poll-based version was removed because it only worked within one browser. Worth keeping manual: it preserves the no-server property the whole design rests on.

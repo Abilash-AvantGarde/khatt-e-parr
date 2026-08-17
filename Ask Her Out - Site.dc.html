@@ -15,7 +15,7 @@
 <sc-if value="{{ isSender }}" hint-placeholder-val="{{ true }}">
 <div style="width:100%;max-width:940px;background:#fbf6ec;border:1px solid #d8cbb2;border-radius:16px;box-shadow:0 20px 46px rgba(60,45,25,.14);overflow:hidden;animation:rise .4s ease">
 <div style="padding:16px 26px;border-bottom:1px solid #e6dcc7;display:flex;justify-content:space-between;align-items:center;gap:12px">
-<div style="font:600 20px 'EB Garamond',serif;letter-spacing:.02em">Are You Free</div>
+<div style="font:600 20px 'EB Garamond',serif;letter-spacing:.02em">{{ appName }}</div>
 <div style="font:400 11px ui-monospace,Menlo,monospace;color:#9c907c">{{ stepLabel }}</div>
 </div>
 
@@ -260,6 +260,23 @@
 </div>
 </x-dc>
 <script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:900}}">
+// ─── Branding ────────────────────────────────────────────────────────────────
+// Change APP_NAME here and it updates everywhere: the sender's header wordmark,
+// the browser tab, and the PRODID stamped into date.ics.
+//
+// Alternative dateish names, kept for easy swapping:
+//   'A Night Free'      — closest to the original, warm
+//   'One Good Night'    — more confident, romantic
+//   'Pick a Night'      — plainest, most functional
+//   'Something Arrived' — echoes the receiver's own copy
+const APP_NAME = 'Khatt-e-Parr';
+
+// Shown in the browser tab. Note this is read by the receiver before she opens
+// anything, so a neutral value here protects the wax-seal reveal; set it to
+// APP_NAME for consistent branding instead.
+const APP_TAB_TITLE = APP_NAME;
+// ─────────────────────────────────────────────────────────────────────────────
+
 const DRAFT = 'ayf:draft';
 
 class Component extends DCLogic {
@@ -281,6 +298,8 @@ class Component extends DCLogic {
   ];
 
   componentDidMount() {
+    // Set before the hash branches below, which return early.
+    try { document.title = APP_TAB_TITLE; } catch (e) {}
     const h = location.hash || '';
     if (h.startsWith('#i=')) {
       const inv = this.decode(h.slice(3));
@@ -475,7 +494,7 @@ class Component extends DCLogic {
     const uid = 'ayf-' + start.getTime() + '-' + Math.abs((`${day}${hour}`).split('')
       .reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0)) + '@are-you-free';
     const lines = [
-      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Are You Free//EN', 'CALSCALE:GREGORIAN',
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//' + this.icsText(APP_NAME) + '//EN', 'CALSCALE:GREGORIAN',
       'BEGIN:VEVENT',
       'UID:' + uid,
       'DTSTAMP:' + this.icsStamp(new Date()),
@@ -512,6 +531,7 @@ class Component extends DCLogic {
       sPreview: s.step === 'preview', sShare: s.step === 'share', sAnswered: s.step === 'answered',
       rTease: s.rStep === 'tease', rDeck: s.rStep === 'deck', rWhen: s.rStep === 'when', rSent: s.rStep === 'sent', rDone: s.rStep === 'done',
 
+      appName: APP_NAME,
       stepLabel: { who: '1 / 5', places: '2 / 5 · places', times: '3 / 5 · nights', line: '4 / 5 · the words', preview: '5 / 5 · preview', share: 'sealed', answered: 'she answered' }[s.step],
       primaryStyle: this.cta(true),
       ghostStyle: 'padding:11px 20px;border:1px solid #c9bda3;border-radius:22px;font-size:16px;cursor:pointer;background:#fffdf7',
