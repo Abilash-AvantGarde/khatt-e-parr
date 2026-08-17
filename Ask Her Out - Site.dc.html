@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet data-dc-atomics><meta name="viewport" content="width=device-width,initial-scale=1"><title>Are You Free</title><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><style>body{margin:0;background:#e7ddc9;color:#26221c;-webkit-font-smoothing:antialiased}*{box-sizing:border-box}@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}@keyframes seal{0%{transform:scale(.4) rotate(-25deg);opacity:0}60%{transform:scale(1.14) rotate(7deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}@keyframes flap{from{transform:rotateX(0)}to{transform:rotateX(-165deg)}}@keyframes fall{to{transform:translateY(560px) rotate(600deg);opacity:0}}@keyframes pulse{50%{opacity:.4;transform:scale(.94)}}@keyframes sway{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}input,textarea{font-family:'EB Garamond',Georgia,serif}.leaflet-container{border-radius:10px;filter:sepia(.42) saturate(1.15) contrast(1.03)}a{color:oklch(0.5 0.14 30)}a:hover{color:#26221c}</style></helmet>
+<template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#e0d4bb"/><rect x="30" y="38" width="40" height="26" rx="2" fill="#f6efe0" stroke="#cfc2a8"/><path d="M30 38h40L50 54z" fill="#ece2ce" stroke="#d8cbb2"/><circle cx="50" cy="52" r="8" fill="oklch(0.52 0.15 27)"/></svg></template>
+
+<div style="min-height:100vh;padding:26px 18px 64px;display:flex;flex-direction:column;align-items:center;gap:18px;font-family:'EB Garamond',Georgia,serif;background:radial-gradient(circle at 50% 0%,#efe7d6,#ddd0b6)">
+
+<sc-if value="{{ isSender }}" hint-placeholder-val="{{ true }}">
+<div style="width:100%;max-width:940px;background:#fbf6ec;border:1px solid #d8cbb2;border-radius:16px;box-shadow:0 20px 46px rgba(60,45,25,.14);overflow:hidden;animation:rise .4s ease">
+<div style="padding:16px 26px;border-bottom:1px solid #e6dcc7;display:flex;justify-content:space-between;align-items:center;gap:12px">
+<div style="font:600 20px 'EB Garamond',serif;letter-spacing:.02em">Are You Free</div>
+<div style="font:400 11px ui-monospace,Menlo,monospace;color:#9c907c">{{ stepLabel }}</div>
+</div>
+
+<sc-if value="{{ sWho }}">
+<div style="padding:58px 34px 62px;display:flex;flex-direction:column;align-items:center;gap:18px;animation:rise .35s ease">
+<div style="font:400 16px Caveat,cursive;color:#8a7f6b;letter-spacing:.04em">let's do this properly</div>
+<div style="font:500 clamp(32px,7vw,46px) 'EB Garamond',serif;text-align:center;line-height:1.06;max-width:540px;text-wrap:pretty">Who are you asking?</div>
+<input onChange="{{ onName }}" onKeyDown="{{ onNameKey }}" value="{{ name }}" placeholder="her name" style="width:100%;max-width:340px;text-align:center;font-size:26px;padding:10px 12px;border:none;border-bottom:1.5px solid #c9bda3;background:transparent;color:#26221c;outline:none" />
+<div onClick="{{ toPlaces }}" style="{{ whoCtaStyle }}">{{ whoCta }}</div>
+<div style="font:400 11px ui-monospace,Menlo,monospace;color:#a89c86;text-align:center;max-width:380px;line-height:1.7">no account, no server. the whole invite travels in a link you send her.</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sPlaces }}">
+<div style="display:flex;flex-wrap:wrap;animation:rise .35s ease">
+<div style="flex:1 1 400px;padding:22px 24px;display:flex;flex-direction:column;gap:12px;border-right:1px solid #e6dcc7">
+<div style="font:500 27px 'EB Garamond',serif">Where might {{ nameOr }} like?</div>
+<div style="display:flex;gap:8px">
+<input onChange="{{ onQuery }}" onKeyDown="{{ onQueryKey }}" value="{{ query }}" placeholder="ramen brooklyn, rooftop bar, mini golf…" style="flex:1;min-width:0;padding:11px 13px;border:1px solid #d3c7ae;border-radius:9px;background:#fffdf7;font-size:16px;outline:none" />
+<div onClick="{{ search }}" style="border:1px solid #26221c;border-radius:9px;padding:11px 17px;font-size:15px;cursor:pointer;background:#26221c;color:#faf5ea;white-space:nowrap">find</div>
+</div>
+<div style="font:400 11px ui-monospace,Menlo,monospace;color:#9c907c">{{ searchStatus }}</div>
+<div style="display:flex;flex-direction:column;gap:7px;max-height:240px;overflow:auto">
+<sc-for list="{{ results }}" as="r" hint-placeholder-count="3">
+<div onClick="{{ r.pick }}" style="{{ r.style }}">
+<div style="font-size:17px;line-height:1.25">{{ r.name }}</div>
+<div style="font:400 12px ui-monospace,Menlo,monospace;color:#9c907c">{{ r.addr }}</div>
+</div>
+</sc-for>
+</div>
+<div ref="{{ mapRef }}" style="flex:1;min-height:230px;border:1px solid #d3c7ae;border-radius:10px;overflow:hidden;background:#efe7d6"></div>
+</div>
+<div style="flex:1 1 270px;padding:22px 24px;display:flex;flex-direction:column;gap:11px;background:#f6efe0">
+<div style="font:400 11px ui-monospace,Menlo,monospace;color:#9c907c">SHORTLIST · {{ shortCount }}</div>
+<sc-for list="{{ shortlist }}" as="p" hint-placeholder-count="2">
+<div style="border:1px solid #d3c7ae;border-radius:11px;background:#fffdf7;overflow:hidden">
+<div style="{{ p.photo }}"></div>
+<div style="padding:9px 11px;display:flex;gap:8px;align-items:flex-start">
+<div style="flex:1"><div style="font-size:17px;line-height:1.2">{{ p.name }}</div><div style="font:400 11px ui-monospace,Menlo,monospace;color:#9c907c">{{ p.addr }}</div></div>
+<div onClick="{{ p.remove }}" style="font:400 12px ui-monospace,Menlo,monospace;color:#a89c86;cursor:pointer;padding:2px 4px">✕</div>
+</div>
+</div>
+</sc-for>
+<div style="font:400 15px Caveat,cursive;color:#9c907c">{{ shortHint }}</div>
+<div onClick="{{ toTimes }}" style="{{ shortCtaStyle }}">{{ shortCta }}</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sTimes }}">
+<div style="padding:28px 30px 32px;display:flex;flex-direction:column;gap:15px;animation:rise .35s ease">
+<div style="font:500 29px 'EB Garamond',serif">When are you free, hero?</div>
+<div style="font:400 17px Caveat,cursive;color:#8a7f6b">offer at least two nights — options are easier to say yes to</div>
+<div style="display:flex;gap:9px;flex-wrap:wrap">
+<sc-for list="{{ days }}" as="d" hint-placeholder-count="5">
+<div onClick="{{ d.toggle }}" style="{{ d.style }}">{{ d.label }}</div>
+</sc-for>
+</div>
+<div style="display:flex;gap:9px;flex-wrap:wrap">
+<sc-for list="{{ hours }}" as="h" hint-placeholder-count="4">
+<div onClick="{{ h.toggle }}" style="{{ h.style }}">{{ h.label }}</div>
+</sc-for>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+<div onClick="{{ backToPlaces }}" style="{{ ghostStyle }}">back</div>
+<div onClick="{{ toLine }}" style="{{ timesCtaStyle }}">{{ timesCta }}</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sLine }}">
+<div style="padding:28px 30px 32px;display:flex;flex-direction:column;gap:14px;animation:rise .35s ease">
+<div style="font:500 29px 'EB Garamond',serif">Say something to open with.</div>
+<textarea onChange="{{ onLine }}" value="{{ line }}" placeholder="write it in your own words…" style="width:100%;min-height:104px;border:1px solid #d3c7ae;border-radius:11px;padding:14px;background:#fffdf7;font-size:19px;line-height:1.45;outline:none;resize:none"></textarea>
+<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+<div onClick="{{ suggest }}" style="{{ ghostStyle }}">{{ suggestLabel }}</div>
+<div style="font:400 11px ui-monospace,Menlo,monospace;color:#9c907c">{{ suggestNote }}</div>
+</div>
+<sc-for list="{{ suggestions }}" as="g" hint-placeholder-count="0">
+<div onClick="{{ g.use }}" style="border:1px dashed #c9bda3;border-radius:11px;padding:12px 15px;background:#f8f2e4;font:400 22px Caveat,cursive;cursor:pointer;line-height:1.3">{{ g.text }}</div>
+</sc-for>
+<div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:6px">
+<div onClick="{{ backToTimes }}" style="{{ ghostStyle }}">back</div>
+<div onClick="{{ toPreview }}" style="{{ primaryStyle }}">preview her view →</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sPreview }}">
+<div style="padding:28px 30px 34px;display:flex;flex-direction:column;gap:15px;animation:rise .35s ease">
+<div style="font:500 29px 'EB Garamond',serif">This is what {{ nameOr }} gets.</div>
+<div style="border:1px solid #d3c7ae;border-radius:12px;background:#f6efe0;padding:18px;display:flex;flex-direction:column;gap:12px">
+<div style="font:400 24px Caveat,cursive;line-height:1.35">{{ lineOr }}</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap">
+<sc-for list="{{ shortlist }}" as="p" hint-placeholder-count="3">
+<div style="width:150px;border:1px solid #d3c7ae;border-radius:10px;overflow:hidden;background:#fffdf7">
+<div style="{{ p.photo }}"></div>
+<div style="padding:8px 10px;font-size:15px;line-height:1.2">{{ p.name }}</div>
+</div>
+</sc-for>
+</div>
+<div style="font:400 12px ui-monospace,Menlo,monospace;color:#9c907c">{{ offerLine }}</div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+<div onClick="{{ backToLine }}" style="{{ ghostStyle }}">back</div>
+<div onClick="{{ toShare }}" style="{{ primaryStyle }}">seal it →</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sShare }}">
+<div style="padding:40px 30px 44px;display:flex;flex-direction:column;align-items:center;gap:16px;animation:rise .35s ease">
+<div style="width:66px;height:66px;border-radius:50%;background:oklch(0.52 0.15 27);color:#fbf1e2;display:flex;align-items:center;justify-content:center;font:400 26px Caveat,cursive;animation:seal .6s ease both">ask</div>
+<div style="font:500 clamp(28px,6vw,36px) 'EB Garamond',serif;text-align:center;line-height:1.08">Sealed. Send it to {{ nameOr }}.</div>
+<div style="font:400 19px Caveat,cursive;color:#8a7f6b;text-align:center;max-width:420px">everything's in the link — she opens it and answers there</div>
+<div style="width:100%;max-width:520px;border:1px solid #d3c7ae;border-radius:10px;background:#fffdf7;padding:12px 14px;font:400 12px ui-monospace,Menlo,monospace;color:#7d7466;word-break:break-all;line-height:1.6">{{ linkText }}</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+<div onClick="{{ copyLink }}" style="{{ primaryStyle }}">{{ copyLabel }}</div>
+<div onClick="{{ shareLink }}" style="{{ ghostStyle }}">share…</div>
+<div onClick="{{ openHerView }}" style="{{ ghostStyle }}">see her view</div>
+</div>
+<div style="font:400 11px ui-monospace,Menlo,monospace;color:#a89c86;text-align:center;max-width:420px;line-height:1.7">when she answers she'll get a link to send back — paste it here and you'll see her reply.</div>
+<div style="display:flex;gap:8px;width:100%;max-width:520px">
+<input onChange="{{ onReplyPaste }}" value="{{ replyPaste }}" placeholder="paste her reply link…" style="flex:1;min-width:0;padding:10px 13px;border:1px solid #d3c7ae;border-radius:9px;background:#fffdf7;font-size:15px;outline:none" />
+<div onClick="{{ openReply }}" style="{{ ghostStyle }}">open</div>
+</div>
+<div style="font:400 12px ui-monospace,Menlo,monospace;color:oklch(0.5 0.14 30)">{{ pasteErr }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ sAnswered }}">
+<div style="padding:44px 30px 50px;display:flex;flex-direction:column;align-items:center;gap:16px;animation:rise .35s ease">
+<div style="font:400 13px ui-monospace,Menlo,monospace;color:oklch(0.52 0.15 27);letter-spacing:.14em">SHE ANSWERED</div>
+<div style="font:500 clamp(30px,7vw,42px) 'EB Garamond',serif;text-align:center;line-height:1.06">{{ replyHead }}</div>
+<div style="width:100%;max-width:470px;border:1px solid #d3c7ae;border-radius:12px;background:#f6efe0;overflow:hidden">
+<div style="{{ replyPhoto }}"></div>
+<div style="padding:16px 18px;display:flex;flex-direction:column;gap:7px">
+<div style="font-size:22px;line-height:1.25">{{ replySummary }}</div>
+<div style="font:400 20px Caveat,cursive;color:#6f6555">{{ replyNote }}</div>
+</div>
+</div>
+<div style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center">
+<div onClick="{{ addCal }}" style="{{ primaryStyle }}">add to calendar</div>
+<div onClick="{{ startOver }}" style="{{ ghostStyle }}">ask someone else</div>
+</div>
+</div>
+</sc-if>
+
+</div>
+</sc-if>
+
+<sc-if value="{{ isReceiver }}">
+<div style="width:100%;max-width:520px;display:flex;flex-direction:column;gap:14px;animation:rise .4s ease">
+
+<sc-if value="{{ rTease }}">
+<div onClick="{{ openEnvelope }}" style="background:#fbf6ec;border:1px solid #d8cbb2;border-radius:16px;box-shadow:0 20px 46px rgba(60,45,25,.15);padding:54px 30px 58px;display:flex;flex-direction:column;align-items:center;gap:20px;cursor:pointer">
+<div style="width:196px;height:130px;border:1px solid #cfc2a8;border-radius:6px;background:linear-gradient(#f6efe0,#efe5d0);position:relative;display:flex;align-items:center;justify-content:center;box-shadow:inset 0 -14px 26px rgba(120,100,70,.09);animation:sway 4s ease-in-out infinite">
+<div style="position:absolute;top:0;left:0;right:0;height:66px;background:linear-gradient(#f1e8d6,#e9dec8);clip-path:polygon(0 0,100% 0,50% 100%);border-bottom:1px solid #d8cbb2;transform-origin:top;animation:{{ flapAnim }}"></div>
+<div style="width:48px;height:48px;border-radius:50%;background:oklch(0.52 0.15 27);color:#fbf1e2;display:flex;align-items:center;justify-content:center;font:400 23px Caveat,cursive;z-index:2;animation:seal .6s ease .1s both">ask</div>
+</div>
+<div style="font:500 clamp(28px,7vw,38px) 'EB Garamond',serif;text-align:center;line-height:1.06;text-wrap:pretty">{{ teaseHead }}</div>
+<div style="font:400 21px Caveat,cursive;color:#8a7f6b;text-align:center">{{ teaseSub }}</div>
+<div style="{{ primaryStyle }}">break the seal →</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ rDeck }}">
+<div style="background:#fbf6ec;border:1px solid #d8cbb2;border-radius:16px;box-shadow:0 20px 46px rgba(60,45,25,.14);padding:22px 22px 26px;display:flex;flex-direction:column;gap:14px">
+<div style="font:400 23px Caveat,cursive;line-height:1.35">{{ lineOr }}</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><div style="font:500 22px 'EB Garamond',serif">{{ deckLabel }}</div><div style="font:400 11px ui-monospace,Menlo,monospace;color:#9c907c">{{ dots }}</div></div>
+<div style="position:relative;height:330px">
+<div style="position:absolute;inset:16px 4px 4px 16px;border:1px solid #ded2b9;border-radius:13px;background:#f4ecdb"></div>
+<div style="position:absolute;inset:8px 10px 10px 8px;border:1px solid #e3d8c1;border-radius:13px;background:#f8f2e5"></div>
+<div style="{{ cardStyle }}">
+<div style="{{ cardPhoto }}"></div>
+<div style="padding:14px 16px;display:flex;flex-direction:column;gap:6px">
+<div style="font:500 24px 'EB Garamond',serif;line-height:1.13">{{ cardName }}</div>
+<div style="font:400 12px ui-monospace,Menlo,monospace;color:#9c907c">{{ cardAddr }}</div>
+</div>
+</div>
+</div>
+<div style="display:flex;justify-content:center;gap:26px">
+<div onClick="{{ nope }}" style="width:60px;height:60px;border:1px solid #c9bda3;border-radius:50%;display:flex;align-items:center;justify-content:center;font:400 20px Caveat,cursive;cursor:pointer;background:#fffdf7">nah</div>
+<div onClick="{{ yep }}" style="width:60px;height:60px;border-radius:50%;background:oklch(0.52 0.15 27);color:#fbf1e2;display:flex;align-items:center;justify-content:center;font:400 20px Caveat,cursive;cursor:pointer">yes</div>
+</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ rWhen }}">
+<div style="background:#fbf6ec;border:1px solid #d8cbb2;border-radius:16px;box-shadow:0 20px 46px rgba(60,45,25,.14);padding:24px;display:flex;flex-direction:column;gap:14px;animation:rise .3s ease">
+<div style="font:500 28px 'EB Garamond',serif;line-height:1.12">{{ pickedLine }}</div>
+<div style="font:400 19px Caveat,cursive;color:#8a7f6b">{{ offerLine }}</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{ offeredDays }}" as="d" hint-placeholder-count="3">
+<div onClick="{{ d.pick }}" style="{{ d.style }}">{{ d.label }}</div>
+</sc-for>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap">
+<sc-for list="{{ offeredHours }}" as="h" hint-placeholder-count="3">
+<div onClick="{{ h.pick }}" style="{{ h.style }}">{{ h.label }}</div>
+</sc-for>
+</div>
+<textarea onChange="{{ onNote }}" value="{{ note }}" placeholder="add a line back, if you're feeling brave…" style="width:100%;min-height:84px;border:1px dashed #c9bda3;border-radius:11px;padding:13px;background:#fffdf7;font-size:18px;outline:none;resize:none"></textarea>
+<div onClick="{{ replyYes }}" style="{{ replyCtaStyle }}">{{ replyCta }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ rSent }}">
+<div style="background:#fbf6ec;border:1px solid #d8cbb2;border-radius:16px;box-shadow:0 20px 46px rgba(60,45,25,.14);padding:64px 30px;display:flex;flex-direction:column;align-items:center;gap:14px;position:relative;overflow:hidden">
+<sc-for list="{{ confetti }}" as="c" hint-placeholder-count="0">
+<div style="{{ c.style }}"></div>
+</sc-for>
+<div style="font:500 clamp(30px,8vw,40px) 'EB Garamond',serif;text-align:center;line-height:1.06">It's a date.</div>
+<div style="font:400 21px Caveat,cursive;color:#8a7f6b;text-align:center">{{ sentSub }}</div>
+</div>
+</sc-if>
+
+<sc-if value="{{ rDone }}">
+<div style="background:#fbf6ec;border:1px solid #d8cbb2;border-radius:16px;box-shadow:0 20px 46px rgba(60,45,25,.14);overflow:hidden;animation:rise .35s ease">
+<div style="{{ donePhoto }}"></div>
+<div style="padding:22px 24px 26px;display:flex;flex-direction:column;gap:10px">
+<div style="font:400 13px ui-monospace,Menlo,monospace;color:oklch(0.52 0.15 27);letter-spacing:.14em">YOUR ANSWER</div>
+<div style="font:500 clamp(26px,6vw,32px) 'EB Garamond',serif;line-height:1.08">{{ doneWhen }}</div>
+<div style="font-size:19px;color:#5c5344;line-height:1.35">{{ doneWhere }}</div>
+<div style="font:400 20px Caveat,cursive;color:#6f6555">{{ doneNote }}</div>
+<div style="border-top:1px solid #e6dcc7;margin-top:6px;padding-top:14px;display:flex;flex-direction:column;gap:10px">
+<div style="font:400 16px Caveat,cursive;color:#8a7f6b">one last thing — send this back so he knows</div>
+<div style="display:flex;gap:9px;flex-wrap:wrap">
+<div onClick="{{ copyReply }}" style="{{ primaryStyle }}">{{ copyReplyLabel }}</div>
+<div onClick="{{ shareReply }}" style="{{ ghostStyle }}">share…</div>
+<div onClick="{{ addCal }}" style="{{ ghostStyle }}">add to calendar</div>
+</div>
+</div>
+</div>
+</div>
+</sc-if>
+
+</div>
+</sc-if>
+
+<div style="font:400 11px ui-monospace,Menlo,monospace;color:#9c8f79;max-width:520px;text-align:center;line-height:1.7">{{ footNote }}</div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1000,&quot;height&quot;:900}}">
+const DRAFT = 'ayf:draft';
+
+class Component extends DCLogic {
+  mapRef = React.createRef();
+
+  state = {
+    mode: 'send', step: 'who', name: '', query: '', results: [], searching: false, searched: false,
+    shortlist: [], days: [], hours: [], line: '', suggestions: [], loadingAi: false, aiErr: '',
+    copied: false, copiedReply: false, replyPaste: '', pasteErr: '', reply: null,
+    ri: 0, rStep: 'tease', rPicked: null, rDay: null, rHour: null, rNote: '', swipe: null, flap: false
+  };
+
+  DAYS = ['Thu', 'Fri', 'Sat', 'Sun', 'next week'];
+  HOURS = ["coffee o'clock", '6:30', '7:30', '9:00'];
+  FALLBACK = [
+    n => `okay, ${n ? n + ', ' : ''}i've been rehearsing this for a week. are you free?`,
+    n => `low-stakes proposal, high-stakes hope: pick a place, pick a night.`,
+    n => `i found three good spots and cleared my calendar. your move.`
+  ];
+
+  componentDidMount() {
+    const h = location.hash || '';
+    if (h.startsWith('#i=')) {
+      const inv = this.decode(h.slice(3));
+      if (inv) { this.setState({ mode: 'receive', rStep: 'tease', ...inv }); return; }
+    }
+    if (h.startsWith('#r=')) {
+      const rep = this.decode(h.slice(3));
+      if (rep) { this.setState({ mode: 'send', step: 'answered', reply: rep, name: rep.name || '' }); return; }
+    }
+    try {
+      const d = JSON.parse(localStorage.getItem(DRAFT) || 'null');
+      if (d && d.name) this.setState(d);
+    } catch (e) {}
+  }
+
+  componentDidUpdate(_p, prev) {
+    const s = this.state;
+    if (s.mode === 'send' && s.step === 'places') this.initMap();
+    if (s.mode === 'send' && ['name', 'shortlist', 'days', 'hours', 'line', 'step'].some(k => prev[k] !== s[k]) && s.step !== 'answered') {
+      const { name, shortlist, days, hours, line, step } = s;
+      try { localStorage.setItem(DRAFT, JSON.stringify({ name, shortlist, days, hours, line, step })); } catch (e) {}
+    }
+  }
+
+  initMap() {
+    if (!window.L || !this.mapRef.current || this.map) return;
+    this.map = window.L.map(this.mapRef.current, { attributionControl: false }).setView([40.7181, -73.9584], 12);
+    window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(this.map);
+    setTimeout(() => this.map && this.map.invalidateSize(), 120);
+  }
+
+  tileAt(lat, lon, z = 15) {
+    const n = Math.pow(2, z);
+    const fx = (Number(lon) + 180) / 360 * n;
+    const r = Number(lat) * Math.PI / 180;
+    const fy = (1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n;
+    const x = Math.floor(fx), y = Math.floor(fy);
+    return { url: `https://tile.openstreetmap.org/${z}/${x}/${y}.png`, px: (fx - x) * 100, py: (fy - y) * 100 };
+  }
+  photo(p, h) {
+    if (!p) return `height:${h}px;background:#e6dcc7`;
+    const t = this.tileAt(p.lat, p.lon);
+    return `height:${h}px;background-image:linear-gradient(160deg,oklch(0.58 0.16 32),oklch(0.36 0.07 52)),url('${t.url}');background-size:cover,260%;background-position:center,${t.px}% ${t.py}%;background-repeat:no-repeat;background-color:#e6dcc7;background-blend-mode:color,normal;filter:contrast(1.12) saturate(.92) brightness(1.02)`;
+  }
+
+  encode(o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/, ''); }
+  decode(s) { try { return JSON.parse(decodeURIComponent(escape(atob(s.replace(/[^A-Za-z0-9+/=]/g, ''))))); } catch (e) { return null; } }
+  base() { return location.origin + location.pathname; }
+  inviteLink() { const { name, shortlist, days, hours, line } = this.state; return this.base() + '#i=' + this.encode({ name, shortlist, days, hours, line }); }
+  replyLink() {
+    const s = this.state;
+    return this.base() + '#r=' + this.encode({ name: s.name, place: s.rPicked, day: s.rDay, hour: s.rHour, note: s.rNote });
+  }
+  copy(text, key) {
+    const done = () => { this.setState({ [key]: true }); setTimeout(() => this.setState({ [key]: false }), 2200); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
+    else {
+      const t = document.createElement('textarea');
+      t.value = text; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(t); done();
+    }
+  }
+  share(text, url) {
+    if (navigator.share) navigator.share({ text, url }).catch(() => {});
+    else this.copy(url, 'copied');
+  }
+
+  async search() {
+    const q = this.state.query.trim();
+    if (!q) return;
+    this.setState({ searching: true, searched: true });
+    try {
+      const res = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=8&addressdetails=1&q=' + encodeURIComponent(q));
+      const json = await res.json();
+      const results = json.map(r => ({
+        id: String(r.place_id), lat: r.lat, lon: r.lon,
+        name: (r.name && r.name.trim()) || r.display_name.split(',')[0],
+        addr: r.display_name.split(',').slice(1, 3).join(',').trim()
+      }));
+      this.setState({ results, searching: false });
+      if (this.map && results.length) {
+        (this.markers || []).forEach(m => this.map.removeLayer(m));
+        this.markers = results.map(r => window.L.marker([Number(r.lat), Number(r.lon)]).addTo(this.map));
+        this.map.fitBounds(results.map(r => [Number(r.lat), Number(r.lon)]), { padding: [30, 30], maxZoom: 15 });
+      }
+    } catch (e) { this.setState({ searching: false, results: [] }); }
+  }
+
+  async suggest() {
+    const s = this.state;
+    this.setState({ loadingAi: true, aiErr: '' });
+    const local = () => this.setState({ loadingAi: false, aiErr: 'wrote these myself — edit freely', suggestions: this.FALLBACK.map(f => f(s.name.trim())) });
+    if (!(window.claude && window.claude.complete)) return local();
+    try {
+      const txt = await window.claude.complete({
+        max_tokens: 400,
+        system: 'You write short, warm, slightly teasing one-liners for asking someone on a date. Never cheesy, never a pickup line. 12-22 words each.',
+        messages: [{ role: 'user', content: `Write 3 opening lines to ask ${s.name || 'her'} out. Places on offer: ${s.shortlist.map(p => p.name).join(', ') || 'a few good spots'}. Nights on offer: ${s.days.join(', ') || 'this weekend'}. Return ONLY the 3 lines, one per line, no numbering or quotes.` }]
+      });
+      const suggestions = String(txt).split('\n').map(t => t.replace(/^[\-\d\.\)\s"']+/, '').trim()).filter(Boolean).slice(0, 3);
+      if (!suggestions.length) return local();
+      this.setState({ suggestions, loadingAi: false });
+    } catch (e) { local(); }
+  }
+
+  swipeCard(dir) {
+    this.setState({ swipe: dir });
+    setTimeout(() => {
+      const { ri, shortlist } = this.state;
+      if (dir === 'right') this.setState({ rPicked: shortlist[ri], swipe: null, rStep: 'when' });
+      else if (ri < shortlist.length - 1) this.setState({ ri: ri + 1, swipe: null });
+      else this.setState({ ri: 0, swipe: null });
+    }, 260);
+  }
+
+  replyYes = () => {
+    const s = this.state;
+    if (!s.rDay || !s.rHour) return;
+    this.setState({ rStep: 'sent' });
+    setTimeout(() => this.setState({ rStep: 'done' }), 2300);
+  };
+
+  ics() {
+    const s = this.state, rep = s.reply;
+    const place = rep ? rep.place : s.rPicked;
+    const when = rep ? `${rep.day} ${rep.hour}` : `${s.rDay} ${s.rHour}`;
+    const note = rep ? rep.note : s.rNote;
+    const body = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${(place && place.name) || 'Date'} — ${when}\nLOCATION:${(place && place.addr) || ''}\nDESCRIPTION:${note || ''}\nEND:VEVENT\nEND:VCALENDAR`;
+    const a = document.createElement('a');
+    a.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(body);
+    a.download = 'date.ics'; a.click();
+  }
+
+  pill = (on) => `border:1px solid ${on ? '#26221c' : '#d3c7ae'};border-radius:20px;padding:9px 17px;font-size:17px;cursor:pointer;background:${on ? 'oklch(0.52 0.15 27)' : '#fffdf7'};color:${on ? '#fbf1e2' : '#26221c'};transition:all .16s ease`;
+  cta = (on) => `padding:12px 26px;border-radius:24px;font-size:18px;text-align:center;cursor:${on ? 'pointer' : 'default'};background:${on ? 'oklch(0.52 0.15 27)' : 'transparent'};color:${on ? '#fbf1e2' : '#a89c86'};border:1px ${on ? 'solid oklch(0.52 0.15 27)' : 'dashed #c9bda3'}`;
+
+  renderVals() {
+    const s = this.state;
+    const short = s.shortlist || [];
+    const hasName = !!s.name.trim();
+    const ready = short.length >= 1;
+    const timesOk = s.days.length && s.hours.length;
+    const card = short[s.ri] || null;
+    const tilt = s.swipe === 'right' ? 'translateX(150%) rotate(16deg)' : s.swipe === 'left' ? 'translateX(-150%) rotate(-16deg)' : 'none';
+    const rep = s.reply;
+    const rReady = !!(s.rDay && s.rHour);
+
+    return {
+      isSender: s.mode === 'send', isReceiver: s.mode === 'receive',
+      sWho: s.step === 'who', sPlaces: s.step === 'places', sTimes: s.step === 'times', sLine: s.step === 'line',
+      sPreview: s.step === 'preview', sShare: s.step === 'share', sAnswered: s.step === 'answered',
+      rTease: s.rStep === 'tease', rDeck: s.rStep === 'deck', rWhen: s.rStep === 'when', rSent: s.rStep === 'sent', rDone: s.rStep === 'done',
+
+      stepLabel: { who: '1 / 5', places: '2 / 5 · places', times: '3 / 5 · nights', line: '4 / 5 · the words', preview: '5 / 5 · preview', share: 'sealed', answered: 'she answered' }[s.step],
+      primaryStyle: this.cta(true),
+      ghostStyle: 'padding:11px 20px;border:1px solid #c9bda3;border-radius:22px;font-size:16px;cursor:pointer;background:#fffdf7',
+
+      name: s.name, nameOr: s.name.trim() || 'her',
+      onName: (e) => this.setState({ name: e.target.value }),
+      onNameKey: (e) => { if (e.key === 'Enter' && hasName) this.setState({ step: 'places' }); },
+      whoCta: hasName ? "find places she'd like →" : 'a name, first',
+      whoCtaStyle: this.cta(hasName),
+      toPlaces: () => { if (hasName) this.setState({ step: 'places' }); },
+
+      query: s.query, onQuery: (e) => this.setState({ query: e.target.value }),
+      onQueryKey: (e) => { if (e.key === 'Enter') this.search(); },
+      search: () => this.search(),
+      mapRef: this.mapRef,
+      searchStatus: s.searching ? 'looking…' : s.searched ? `${s.results.length} places · tap to shortlist` : 'real places, real map — search anything',
+      results: s.results.map(r => ({
+        name: r.name, addr: r.addr,
+        style: `border:1px solid ${short.some(p => p.id === r.id) ? 'oklch(0.52 0.15 27)' : '#e0d5be'};border-radius:10px;padding:9px 12px;cursor:pointer;background:#fffdf7`,
+        pick: () => { if (short.some(p => p.id === r.id) || short.length >= 3) return; this.setState({ shortlist: [...short, r] }); }
+      })),
+      shortlist: short.map((p, i) => ({
+        name: p.name, addr: p.addr, photo: this.photo(p, 84),
+        remove: () => this.setState({ shortlist: short.filter((_, n) => n !== i), ri: 0 })
+      })),
+      shortCount: `${short.length} / 3`,
+      shortHint: short.length === 0 ? 'search, then tap a place to add it' : short.length < 3 ? 'two or three is the sweet spot' : 'perfect. lock it in.',
+      shortCta: ready ? 'next: your free nights →' : 'add at least one place',
+      shortCtaStyle: this.cta(ready),
+      toTimes: () => { if (ready) this.setState({ step: 'times' }); },
+
+      days: this.DAYS.map(d => ({ label: d, style: this.pill(s.days.includes(d)), toggle: () => this.setState({ days: s.days.includes(d) ? s.days.filter(x => x !== d) : [...s.days, d] }) })),
+      hours: this.HOURS.map(h => ({ label: h, style: this.pill(s.hours.includes(h)), toggle: () => this.setState({ hours: s.hours.includes(h) ? s.hours.filter(x => x !== h) : [...s.hours, h] }) })),
+      timesCta: timesOk ? 'next: the words →' : 'pick a night and an hour',
+      timesCtaStyle: this.cta(!!timesOk),
+      toLine: () => { if (timesOk) this.setState({ step: 'line' }); },
+      backToPlaces: () => this.setState({ step: 'places' }),
+
+      line: s.line, onLine: (e) => this.setState({ line: e.target.value }),
+      suggest: () => this.suggest(),
+      suggestLabel: s.loadingAi ? 'thinking…' : 'help me write it',
+      suggestNote: s.aiErr || 'three options — tap one to use it',
+      suggestions: s.suggestions.map(t => ({ text: t, use: () => this.setState({ line: t }) })),
+      backToTimes: () => this.setState({ step: 'times' }),
+      toPreview: () => this.setState({ step: 'preview' }),
+      backToLine: () => this.setState({ step: 'line' }),
+      toShare: () => this.setState({ step: 'share' }),
+
+      lineOr: s.line.trim() || 'so… a question.',
+      offerLine: `${s.days.join(' · ') || 'any night'}  ·  ${s.hours.join(' · ') || 'any time'}`,
+      linkText: this.inviteLink(),
+      copyLabel: s.copied ? 'copied ✓' : 'copy her link',
+      copyLink: () => this.copy(this.inviteLink(), 'copied'),
+      shareLink: () => this.share(`${s.line.trim() || 'a question for you'} →`, this.inviteLink()),
+      openHerView: () => { const inv = { name: s.name, shortlist: short, days: s.days, hours: s.hours, line: s.line }; this.setState({ mode: 'receive', rStep: 'tease', ri: 0, rPicked: null, rDay: null, rHour: null, rNote: '', flap: false, ...inv }); },
+      replyPaste: s.replyPaste,
+      onReplyPaste: (e) => this.setState({ replyPaste: e.target.value, pasteErr: '' }),
+      openReply: () => {
+        const v = s.replyPaste.trim();
+        const i = v.indexOf('#r=');
+        const rep = i >= 0 ? this.decode(v.slice(i + 3)) : this.decode(v);
+        if (rep && (rep.day || rep.place)) this.setState({ reply: rep, step: 'answered', pasteErr: '' });
+        else this.setState({ pasteErr: "that doesn't look like her reply link" });
+      },
+      pasteErr: s.pasteErr,
+
+      replyHead: rep ? `${(rep.name || '').trim() || 'She'} said yes.` : 'She said yes.',
+      replySummary: rep ? `${rep.place ? rep.place.name : 'your idea'} · ${rep.day} · ${rep.hour}` : '',
+      replyNote: rep && rep.note ? `“${rep.note}”` : 'no note. mysterious.',
+      replyPhoto: this.photo(rep && rep.place, 150),
+      addCal: () => this.ics(),
+      startOver: () => { try { localStorage.removeItem(DRAFT); } catch (e) {} location.hash = ''; this.setState({ mode: 'send', step: 'who', name: '', query: '', results: [], searched: false, shortlist: [], days: [], hours: [], line: '', suggestions: [], reply: null, replyPaste: '', ri: 0, rStep: 'tease', rPicked: null, rDay: null, rHour: null, rNote: '', flap: false }); },
+
+      teaseHead: s.name.trim() ? `${s.name.trim()}, something arrived.` : 'Something arrived for you.',
+      teaseSub: short.length ? `${short.length} ${short.length === 1 ? 'idea' : 'ideas'} inside. he's sweating.` : "he's sweating.",
+      flapAnim: s.flap ? 'flap .7s ease forwards' : 'none',
+      openEnvelope: () => { this.setState({ flap: true }); setTimeout(() => this.setState({ rStep: 'deck' }), 620); },
+
+      deckLabel: card ? `Idea ${s.ri + 1} of ${short.length}` : 'His idea',
+      dots: short.map((_, n) => (n === s.ri ? '●' : '○')).join(' '),
+      cardName: card ? card.name : 'a place he likes',
+      cardAddr: card ? card.addr : '',
+      cardPhoto: this.photo(card, 190),
+      cardStyle: `position:absolute;inset:0 16px 16px 0;border:1px solid #cfc2a8;border-radius:13px;background:#fffdf7;overflow:hidden;display:flex;flex-direction:column;transform:${tilt};transition:transform .26s cubic-bezier(.4,0,.2,1);box-shadow:0 8px 20px rgba(60,45,25,.1)`,
+      yep: () => this.swipeCard('right'), nope: () => this.swipeCard('left'),
+
+      pickedLine: s.rPicked ? `${s.rPicked.name}. good pick.` : 'Good pick.',
+      offeredDays: (s.days.length ? s.days : ['Fri', 'Sat', 'Sun']).map(d => ({ label: d, style: this.pill(s.rDay === d), pick: () => this.setState({ rDay: d }) })),
+      offeredHours: (s.hours.length ? s.hours : ['6:30', '7:30']).map(h => ({ label: h, style: this.pill(s.rHour === h), pick: () => this.setState({ rHour: h }) })),
+      note: s.rNote, onNote: (e) => this.setState({ rNote: e.target.value }),
+      replyCta: rReady ? 'send it back →' : 'pick a night and an hour',
+      replyCtaStyle: this.cta(rReady),
+      replyYes: this.replyYes,
+      confetti: Array.from({ length: 26 }, (_, i) => ({
+        style: `position:absolute;top:-20px;left:${(i * 3.8 + 2) % 100}%;width:${6 + (i % 3) * 3}px;height:${10 + (i % 4) * 3}px;background:${i % 3 === 0 ? 'oklch(0.52 0.15 27)' : i % 3 === 1 ? 'oklch(0.72 0.11 70)' : '#cfc2a8'};border-radius:2px;animation:fall ${1.6 + (i % 5) * .35}s linear ${(i % 7) * .12}s forwards`
+      })),
+      sentSub: "he's going to reread this eleven times.",
+
+      doneWhen: `${s.rDay || ''} · ${s.rHour || ''}`,
+      doneWhere: s.rPicked ? `${s.rPicked.name} — ${s.rPicked.addr}` : '',
+      doneNote: s.rNote ? `“${s.rNote}”` : 'no note. mysterious.',
+      donePhoto: this.photo(s.rPicked, 190),
+      copyReplyLabel: s.copiedReply ? 'reply link copied ✓' : 'copy my reply link',
+      copyReply: () => this.copy(this.replyLink(), 'copiedReply'),
+      shareReply: () => this.share('yes →', this.replyLink()),
+
+      footNote: s.mode === 'send'
+        ? 'Live OpenStreetMap places. Nothing is stored anywhere — the invite and her reply both travel inside their links.'
+        : 'Answer here, then send him the reply link. Nothing is stored on any server.'
+    };
+  }
+}
+</script>
+</body>
+</html>
