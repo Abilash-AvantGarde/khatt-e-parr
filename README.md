@@ -35,10 +35,20 @@ docker compose up -d --build     # http://localhost:8080
 | `#i=<payload>` | receiver | break the seal, answer |
 | `#r=<payload>` | sender | see her reply |
 
-**Payloads** are base64url JSON. Invite: `{ name, shortlist, days, hours, line }`.
-Reply: `{ name, place, day, hour, note }`. Base64url matters — standard base64
-emits `+` and `/`, and a `+` in a URL fragment is widely re-decoded as a space,
-which silently corrupted roughly 13% of invites.
+**Payloads** are base64url JSON, kept compact because every byte ends up in the
+link he pastes to her. Invite: `{ n, p, d, h, l }` — name, places, days, hours,
+line. Reply: `{ n, p, d, h, t }`. Each place is a positional array
+`[lat, lon, name, addr]`.
+
+Three things keep it short, worth ~31% of the URL: the Nominatim `id` never goes
+on the wire (it's only used to dedupe while shortlisting), coordinates are
+rounded to 5 decimals (~1 m, vs the ~1 cm Nominatim returns), and places are
+arrays so the JSON keys aren't repeated per place. `unpackInvite`/`unpackReply`
+still accept the older verbose shape, so links already sent keep working.
+
+Base64url matters too — standard base64 emits `+` and `/`, and a `+` in a URL
+fragment is widely re-decoded as a space, which silently corrupted roughly 13%
+of invites.
 
 **Persistence** is the sender's draft only, in `localStorage` under `ayf:draft`.
 The receiver stores nothing.
@@ -105,5 +115,7 @@ Two gotchas if you edit the nginx config:
    duotone photos technically do. Proxy and cache both for real traffic.
 3. **Reply loop is manual** — she sends a link back. Deliberate: automating it
    would cost the no-server property the whole design rests on.
-4. **URL length** grows with the shortlist; the 3-place cap keeps it safe.
+4. **URL length** grows with the shortlist. A full 3-place invite is ~530 chars,
+   well within limits. Deflate via `CompressionStream` would take it to ~360,
+   but that API is async and `inviteLink()` is called synchronously in render.
 5. **Anyone with the link can open it** — the payload is encoded, not encrypted.

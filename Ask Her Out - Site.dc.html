@@ -305,11 +305,11 @@ class Component extends DCLogic {
     try { document.title = APP_TAB_TITLE; } catch (e) {}
     const h = location.hash || '';
     if (h.startsWith('#i=')) {
-      const inv = this.decode(h.slice(3));
+      const inv = this.unpackInvite(this.decode(h.slice(3)));
       if (inv) { this.setState({ mode: 'receive', rStep: 'tease', ...inv }); return; }
     }
     if (h.startsWith('#r=')) {
-      const rep = this.decode(h.slice(3));
+      const rep = this.unpackReply(this.decode(h.slice(3)));
       if (rep) { this.setState({ mode: 'send', step: 'answered', reply: rep, name: rep.name || '' }); return; }
     }
     try {
@@ -368,12 +368,49 @@ class Component extends DCLogic {
       return JSON.parse(new TextDecoder().decode(bytes));
     } catch (e) { return null; }
   }
-  base() { return location.origin + location.pathname; }
-  inviteLink() { const { name, shortlist, days, hours, line } = this.state; return this.base() + '#i=' + this.encode({ name, shortlist, days, hours, line }); }
-  replyLink() {
-    const s = this.state;
-    return this.base() + '#r=' + this.encode({ name: s.name, place: s.rPicked, day: s.rDay, hour: s.rHour, note: s.rNote });
+  // ── Wire format ────────────────────────────────────────────────────────────
+  // Payloads ride in the URL, so every byte shows up in what he pastes to her.
+  // Three savings over storing state verbatim, worth ~34% of the link:
+  //   1. `id` is only used to dedupe while shortlisting — the receiver never
+  //      reads it, so it never goes on the wire.
+  //   2. lat/lon are rounded to 5 decimals (~1 m), plenty for a map pin; the
+  //      raw Nominatim values carry 7 (~1 cm).
+  //   3. positional arrays instead of objects, so the JSON keys aren't repeated
+  //      once per place.
+  // Decoding accepts the old verbose shape too, so links already sent still open.
+  packPlace(p) {
+    if (!p) return null;
+    const r = n => Math.round(Number(n) * 1e5) / 1e5;
+    return [r(p.lat), r(p.lon), p.name || '', p.addr || ''];
   }
+  unpackPlace(v, i) {
+    if (!v) return null;
+    if (!Array.isArray(v)) return v;                    // legacy object form
+    return { id: 'p' + i, lat: v[0], lon: v[1], name: v[2] || '', addr: v[3] || '' };
+  }
+  packInvite(s) {
+    return { n: s.name, p: (s.shortlist || []).map(p => this.packPlace(p)),
+             d: s.days, h: s.hours, l: s.line };
+  }
+  unpackInvite(o) {
+    if (!o) return null;
+    if (o.shortlist || o.name !== undefined) return o;   // legacy verbose form
+    return { name: o.n || '', shortlist: (o.p || []).map((v, i) => this.unpackPlace(v, i)),
+             days: o.d || [], hours: o.h || [], line: o.l || '' };
+  }
+  packReply(s) {
+    return { n: s.name, p: this.packPlace(s.rPicked), d: s.rDay, h: s.rHour, t: s.rNote };
+  }
+  unpackReply(o) {
+    if (!o) return null;
+    if (o.place || o.day !== undefined) return o;        // legacy verbose form
+    return { name: o.n || '', place: this.unpackPlace(o.p, 0),
+             day: o.d || '', hour: o.h || '', note: o.t || '' };
+  }
+
+  base() { return location.origin + location.pathname; }
+  inviteLink() { return this.base() + '#i=' + this.encode(this.packInvite(this.state)); }
+  replyLink() { return this.base() + '#r=' + this.encode(this.packReply(this.state)); }
   copy(text, key) {
     const done = () => { this.setState({ [key]: true }); setTimeout(() => this.setState({ [key]: false }), 2200); };
     if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, done);
@@ -595,7 +632,7 @@ class Component extends DCLogic {
       openReply: () => {
         const v = s.replyPaste.trim();
         const i = v.indexOf('#r=');
-        const rep = i >= 0 ? this.decode(v.slice(i + 3)) : this.decode(v);
+        const rep = this.unpackReply(i >= 0 ? this.decode(v.slice(i + 3)) : this.decode(v));
         if (rep && (rep.day || rep.place)) this.setState({ reply: rep, step: 'answered', pasteErr: '' });
         else this.setState({ pasteErr: "that doesn't look like her reply link" });
       },
