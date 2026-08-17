@@ -7,7 +7,7 @@
 </head>
 <body>
 <x-dc>
-<helmet data-dc-atomics><meta name="viewport" content="width=device-width,initial-scale=1"><title>Are You Free</title><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><style>body{margin:0;background:#e7ddc9;color:#26221c;-webkit-font-smoothing:antialiased}*{box-sizing:border-box}@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}@keyframes seal{0%{transform:scale(.4) rotate(-25deg);opacity:0}60%{transform:scale(1.14) rotate(7deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}@keyframes flap{from{transform:rotateX(0)}to{transform:rotateX(-165deg)}}@keyframes fall{to{transform:translateY(560px) rotate(600deg);opacity:0}}@keyframes pulse{50%{opacity:.4;transform:scale(.94)}}@keyframes sway{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}input,textarea{font-family:'EB Garamond',Georgia,serif}.leaflet-container{border-radius:10px;filter:sepia(.42) saturate(1.15) contrast(1.03)}a{color:oklch(0.5 0.14 30)}a:hover{color:#26221c}</style></helmet>
+<helmet data-dc-atomics><meta name="viewport" content="width=device-width,initial-scale=1"><title>An Invitation</title><link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2032%2032%22%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2214%22%20fill%3D%22%23b2432f%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2214%22%20fill%3D%22none%22%20stroke%3D%22%238d3221%22%20stroke-width%3D%221.5%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2210.5%22%20fill%3D%22none%22%20stroke%3D%22%23d9694f%22%20stroke-width%3D%221.4%22%20stroke-dasharray%3D%222.4%202.2%22%2F%3E%3Cpath%20d%3D%22M11%2012.5h10l-5%204.2z%22%20fill%3D%22%23f4e3d2%22%2F%3E%3Cpath%20d%3D%22M11%2012.5v7h10v-7%22%20fill%3D%22none%22%20stroke%3D%22%23f4e3d2%22%20stroke-width%3D%221.6%22%20stroke-linejoin%3D%22round%22%2F%3E%3C%2Fsvg%3E"><link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;700&family=EB+Garamond:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"><script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script><style>body{margin:0;background:#e7ddc9;color:#26221c;-webkit-font-smoothing:antialiased}*{box-sizing:border-box}@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}@keyframes seal{0%{transform:scale(.4) rotate(-25deg);opacity:0}60%{transform:scale(1.14) rotate(7deg);opacity:1}100%{transform:scale(1) rotate(0);opacity:1}}@keyframes flap{from{transform:rotateX(0)}to{transform:rotateX(-165deg)}}@keyframes fall{to{transform:translateY(560px) rotate(600deg);opacity:0}}@keyframes pulse{50%{opacity:.4;transform:scale(.94)}}@keyframes sway{0%,100%{transform:rotate(-1.5deg)}50%{transform:rotate(1.5deg)}}input,textarea{font-family:'EB Garamond',Georgia,serif}.leaflet-container{border-radius:10px;filter:sepia(.42) saturate(1.15) contrast(1.03)}a{color:oklch(0.5 0.14 30)}a:hover{color:#26221c}@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;scroll-behavior:auto !important}}</style></helmet>
 <template id="__bundler_thumbnail"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#e0d4bb"/><rect x="30" y="38" width="40" height="26" rx="2" fill="#f6efe0" stroke="#cfc2a8"/><path d="M30 38h40L50 54z" fill="#ece2ce" stroke="#d8cbb2"/><circle cx="50" cy="52" r="8" fill="oklch(0.52 0.15 27)"/></svg></template>
 
 <div style="min-height:100vh;padding:26px 18px 64px;display:flex;flex-direction:column;align-items:center;gap:18px;font-family:'EB Garamond',Georgia,serif;background:radial-gradient(circle at 50% 0%,#efe7d6,#ddd0b6)">
@@ -307,8 +307,10 @@ class Component extends DCLogic {
 
   initMap() {
     if (!window.L || !this.mapRef.current || this.map) return;
-    this.map = window.L.map(this.mapRef.current, { attributionControl: false }).setView([40.7181, -73.9584], 12);
-    window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(this.map);
+    this.map = window.L.map(this.mapRef.current).setView([40.7181, -73.9584], 12);
+    window.L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19, attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+    }).addTo(this.map);
     setTimeout(() => this.map && this.map.invalidateSize(), 120);
   }
 
@@ -326,8 +328,24 @@ class Component extends DCLogic {
     return `height:${h}px;background-image:linear-gradient(160deg,oklch(0.58 0.16 32),oklch(0.36 0.07 52)),url('${t.url}');background-size:cover,260%;background-position:center,${t.px}% ${t.py}%;background-repeat:no-repeat;background-color:#e6dcc7;background-blend-mode:color,normal;filter:contrast(1.12) saturate(.92) brightness(1.02)`;
   }
 
-  encode(o) { return btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/=+$/, ''); }
-  decode(s) { try { return JSON.parse(decodeURIComponent(escape(atob(s.replace(/[^A-Za-z0-9+/=]/g, ''))))); } catch (e) { return null; } }
+  encode(o) {
+    const bytes = new TextEncoder().encode(JSON.stringify(o));
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    // base64url: '+' and '/' get mangled by link handlers that treat '+' as a
+    // space, and decode() strips the result — silently corrupting the payload.
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  }
+  decode(s) {
+    try {
+      // Accept base64url and legacy base64 (older links stay readable).
+      const b = s.replace(/-/g, '+').replace(/_/g, '/').replace(/[^A-Za-z0-9+/=]/g, '');
+      const bin = atob(b);
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return JSON.parse(new TextDecoder().decode(bytes));
+    } catch (e) { return null; }
+  }
   base() { return location.origin + location.pathname; }
   inviteLink() { const { name, shortlist, days, hours, line } = this.state; return this.base() + '#i=' + this.encode({ name, shortlist, days, hours, line }); }
   replyLink() {
@@ -345,7 +363,9 @@ class Component extends DCLogic {
     }
   }
   share(text, url) {
-    if (navigator.share) navigator.share({ text, url }).catch(() => {});
+    // iOS Safari keeps only `text` when both are supplied, which would send the
+    // opening line and drop the invite link entirely. The url is the payload.
+    if (navigator.share) navigator.share({ url }).catch(() => {});
     else this.copy(url, 'copied');
   }
 
@@ -404,12 +424,69 @@ class Component extends DCLogic {
     setTimeout(() => this.setState({ rStep: 'done' }), 2300);
   };
 
+  // Resolve a day label ('Fri', 'next week') and hour label ("coffee o'clock",
+  // '7:30') into the next matching real datetime. Evening hours are PM.
+  eventStart(day, hour) {
+    const idx = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
+    const d = new Date();
+    d.setSeconds(0, 0);
+    if (day && idx[day] !== undefined) {
+      const delta = (idx[day] - d.getDay() + 7) % 7 || 7;
+      d.setDate(d.getDate() + delta);
+    } else {
+      d.setDate(d.getDate() + 7); // 'next week' / unknown
+    }
+    const m = /^(\d{1,2}):(\d{2})$/.exec(String(hour || '').trim());
+    if (m) {
+      let h = Number(m[1]);
+      if (h < 12) h += 12; // 6:30, 7:30, 9:00 are evenings
+      d.setHours(h, Number(m[2]));
+    } else {
+      d.setHours(10, 30); // "coffee o'clock"
+    }
+    return d;
+  }
+  icsStamp(d) {
+    const p = n => String(n).padStart(2, '0');
+    return d.getUTCFullYear() + p(d.getUTCMonth() + 1) + p(d.getUTCDate()) + 'T' +
+      p(d.getUTCHours()) + p(d.getUTCMinutes()) + '00Z';
+  }
+  // RFC 5545: backslash, semicolon and comma are escaped; newlines become \n.
+  icsText(v) {
+    return String(v == null ? '' : v)
+      .replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,')
+      .replace(/\r?\n/g, '\\n');
+  }
+  // RFC 5545: lines are folded at 75 octets with a leading space on continuations.
+  icsFold(line) {
+    if (line.length <= 73) return line;
+    const out = [line.slice(0, 73)];
+    for (let i = 73; i < line.length; i += 72) out.push(' ' + line.slice(i, i + 72));
+    return out.join('\r\n');
+  }
   ics() {
     const s = this.state, rep = s.reply;
     const place = rep ? rep.place : s.rPicked;
-    const when = rep ? `${rep.day} ${rep.hour}` : `${s.rDay} ${s.rHour}`;
+    const day = rep ? rep.day : s.rDay;
+    const hour = rep ? rep.hour : s.rHour;
     const note = rep ? rep.note : s.rNote;
-    const body = `BEGIN:VCALENDAR\nVERSION:2.0\nBEGIN:VEVENT\nSUMMARY:${(place && place.name) || 'Date'} — ${when}\nLOCATION:${(place && place.addr) || ''}\nDESCRIPTION:${note || ''}\nEND:VEVENT\nEND:VCALENDAR`;
+    const start = this.eventStart(day, hour);
+    const end = new Date(start.getTime() + 90 * 60000);
+    const uid = 'ayf-' + start.getTime() + '-' + Math.abs((`${day}${hour}`).split('')
+      .reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0)) + '@are-you-free';
+    const lines = [
+      'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Are You Free//EN', 'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      'UID:' + uid,
+      'DTSTAMP:' + this.icsStamp(new Date()),
+      'DTSTART:' + this.icsStamp(start),
+      'DTEND:' + this.icsStamp(end),
+      'SUMMARY:' + this.icsText(((place && place.name) || 'Date') + ' — ' + [day, hour].filter(Boolean).join(' ')),
+      'LOCATION:' + this.icsText((place && place.addr) || ''),
+      'DESCRIPTION:' + this.icsText(note || ''),
+      'END:VEVENT', 'END:VCALENDAR'
+    ];
+    const body = lines.map(l => this.icsFold(l)).join('\r\n');
     const a = document.createElement('a');
     a.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(body);
     a.download = 'date.ics'; a.click();

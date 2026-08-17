@@ -256,10 +256,17 @@ None. No images, icon fonts, or SVG illustrations. All imagery is generated from
 | `Ask Her Out - Wireframes.dc.html` | Low-fi wireframes of the original flow, including an alternative desktop layout. Structure reference only — ignore the styling. |
 | `support.js` | Runtime required by the `.dc.html` files. Not part of the design; do not port. |
 
+## Fixed since the original bundle
+1. **Payload encoding is base64url.** Standard base64 emits `+` and `/`; roughly 13% of realistic invites contained one. A `+` in a URL fragment is widely re-decoded as a space, and `decode()` then stripped it — silently corrupting the payload and shifting every later character. `encode()` now maps `+/` → `-_` and `decode()` accepts both alphabets, so links made by older builds still open.
+2. **`navigator.share` sends the link.** It was called as `share({ text, url })`; iOS Safari keeps only `text` when both are present, so tapping "share…" sent the opening line and dropped the invite entirely. It now shares `{ url }`.
+3. **`date.ics` is a valid calendar event.** It previously had no `DTSTART` at all and no escaping. Day/hour labels now resolve to a real datetime (evening hours are PM, "coffee o'clock" is 10:30), with `DTEND`, `UID`, `DTSTAMP`, RFC 5545 escaping of `\ ; ,` and newlines, 75-octet line folding, and CRLF endings.
+4. **OSM attribution is on.** `attributionControl: false` was removed and the tile layer carries "© OpenStreetMap contributors" — a licence condition, not a style choice.
+5. **`prefers-reduced-motion` is honoured**, which matters here because the app is motion-heavy (sway, seal, flap, confetti, swipe).
+6. **Tab identity**: title is "An Invitation" with a wax-seal favicon. The old "Are You Free" title spoiled the envelope reveal for the receiver, since the tab is readable before she opens anything.
+
 ## Known gaps for production
-1. **Reply loop is manual** — she copies a link back to him. A tiny key-value backend (or a signed short-link service) would let his screen update on its own; the prototype's poll-based version was removed because it only worked within one browser.
+1. **Reply loop is manual** — she copies a link back to him. A tiny key-value backend (or a signed short-link service) would let his screen update on its own; the prototype's poll-based version was removed because it only worked within one browser. Worth keeping manual: it preserves the no-server property the whole design rests on.
 2. **URL length** grows with the shortlist; the 3-place cap keeps it safe. A short-link service would remove the constraint.
-3. **Nominatim + OSM tiles** need attribution, a proper `User-Agent`, and rate limiting — or replacement with a keyed provider.
-4. **No `prefers-reduced-motion` handling.**
-5. **Accessibility**: interactive elements are `div`s with click handlers. Port them as real `<button>`/`<input>` elements with labels and focus rings.
-6. **Anyone with the link can open it** — the payload is base64, not encrypted. Fine for this use case; worth stating.
+3. **Nominatim + OSM tiles usage limits.** Attribution is now correct, but the public endpoints still need a descriptive `User-Agent`/`Referer` and rate limiting. Two policy points to respect: Nominatim explicitly bans client-side **auto-complete** search (the current explicit-search button is the compliant design — don't make it live-as-you-type), and the tile policy treats non-viewport fetching as bulk downloading, which is what the duotone place "photos" technically do. For real traffic, proxy and cache both, or move to a keyed provider.
+4. **Accessibility**: interactive elements are `div`s with click handlers. Port them as real `<button>`/`<input>` elements with labels and focus rings. This is the largest remaining gap — nothing is keyboard-reachable or screen-reader announced.
+5. **Anyone with the link can open it** — the payload is base64, not encrypted. Fine for this use case; worth stating.
